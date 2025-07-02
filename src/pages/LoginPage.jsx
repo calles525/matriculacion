@@ -64,19 +64,26 @@ export default function LoginForm() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        minHeight: '100vh', // Ocupa toda la altura de la pantalla
-        padding: 2 // Espacio alrededor en pantallas pequeñas
+        minHeight: '100vh',
+        padding: 2,
+        width: '100vw', // Ocupa el 100% del viewport width
+        height: '100vh', 
       }}
     >
-     <Paper sx={{
-    maxWidth: 400,
-    width: '100%', // Asegura que ocupe el ancho máximo en pantallas pequeñas
-    padding: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: 'white',
-    borderRadius: 2,
-    marginX: 'auto', // Centra el Paper
-  }}>
+      <Paper
+        sx={{
+          width: '100%', // Ocupa el 100% del ancho en móviles
+          maxWidth: 400, // Máximo ancho en pantallas más grandes
+          padding: 4,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          borderRadius: 2,
+          margin: 'auto', // Centrado horizontal y vertical
+          display: 'flex', // Para manejar mejor el contenido interno
+          flexDirection: 'column', // Organiza los elementos internos en columna
+          justifyContent: 'center' // Centra el contenido verticalmente dentro del Paper
+        }}
+      >
         <Box sx={{ textAlign: 'center', mb: 1 }}>
           <img
             src={logo}
@@ -88,7 +95,7 @@ export default function LoginForm() {
             }}
           />
           <Typography variant="h5" component="h1" sx={{ color: 'white' }}>
-           Inicio de Sesión
+            Inicio de Sesión
           </Typography>
         </Box>
 
@@ -136,7 +143,7 @@ export default function LoginForm() {
             }}
           />
 
-        
+
 
           {error && (
             <Typography color="error" variant="body2" sx={{ mb: 2 }}>
@@ -163,11 +170,11 @@ export default function LoginForm() {
             )}
           </Button>
 
-       
 
-        
 
-        
+
+
+
 
         </Box>
       </Paper>

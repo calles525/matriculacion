@@ -151,7 +151,7 @@ export default function ConvencionistaTable() {
   }
 
   return (
-    <Box sx={{ width: '100%', mt: 3, backgroundColor: '#fff', p: 2, borderRadius: 2 }}>
+    <Box sx={{ width: '100%', mt: 2, backgroundColor: '#fff', p: 2, borderRadius: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Typography variant="h6" gutterBottom>
           Lista de Convencionistas

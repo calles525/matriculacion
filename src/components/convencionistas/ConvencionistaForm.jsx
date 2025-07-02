@@ -102,7 +102,7 @@ export default function ConvencionistaForm({ onSuccess }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ mt:30, p: 3 }}>
+    <Paper elevation={3} sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
         Registrar Nuevo Convencionista
       </Typography>
