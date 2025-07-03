@@ -14,9 +14,16 @@ import {
   TableSortLabel,
   TextField,
   IconButton,
-  Tooltip
+  Tooltip,
+  Button,
+  ButtonGroup,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
-import { Refresh, FilterList } from '@mui/icons-material';
+import { Refresh, FilterList, ChildCare, Groups, Male, Female } from '@mui/icons-material';
 import api from '../../api/api';
 import { Alert } from '../ui/Alert';
 
@@ -33,7 +40,7 @@ const formatDate = (dateString) => {
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('es-VE', {
-    style: 'decimal', // Usamos 'decimal' en lugar de 'currency'
+    style: 'decimal',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount);
@@ -52,6 +59,16 @@ const formatTipoPago = (tipo) => {
   return tipos[tipo] || tipo;
 };
 
+const formatTipoAsamblea = (tipo) => {
+  const tipos = {
+    'Niño': 'Niño',
+    'Asambleista': 'Asambleista',
+    'Visita': 'Visita',
+    'Invitado Especial': 'Invitado Especial'
+  };
+  return tipos[tipo] || tipo;
+};
+
 export default function ConvencionistaTable() {
   const [convencionistas, setConvencionistas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,13 +79,14 @@ export default function ConvencionistaTable() {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('fecha_registro');
   const [refresh, setRefresh] = useState(false);
+  const [filter, setFilter] = useState('todos'); // 'todos', 'menores', 'asambleistas'
+  const [sexoFilter, setSexoFilter] = useState('todos'); // 'todos', 'Masculino', 'Femenino'
 
   useEffect(() => {
     const fetchConvencionistas = async () => {
       const user = JSON.parse(localStorage.getItem('user')) || {};
       try {
         const response = await api.get(`/convencionistas`);
-        console.log('Datos recibidos:', response.data);
         setConvencionistas(response.data.data || response.data);
       } catch (err) {
         console.error('Error al obtener convencionistas:', err);
@@ -106,16 +124,43 @@ export default function ConvencionistaTable() {
     setPage(0);
   };
 
+  const handleSexoFilterChange = (event) => {
+    setSexoFilter(event.target.value);
+    setPage(0);
+  };
+
   const filteredData = convencionistas
     .filter(item => {
+      // Filtro por búsqueda
       const searchLower = searchTerm.toLowerCase();
-      return (
+      const matchesSearch = (
         item.nombre.toLowerCase().includes(searchLower) ||
         item.apellido.toLowerCase().includes(searchLower) ||
         item.referencia_pago.toLowerCase().includes(searchLower) ||
         item.tipo_matricula.toLowerCase().includes(searchLower) ||
         item.tipo_pago.toLowerCase().includes(searchLower)
       );
+
+      // Filtro por tipo (botones)
+      let matchesFilter = true;
+      switch(filter) {
+        case 'menores':
+          matchesFilter = parseInt(item.edad) < 12;
+          break;
+        case 'asambleistas':
+          matchesFilter = item.tipo_asamblea === 'Asambleista';
+          break;
+        default:
+          matchesFilter = true;
+      }
+
+      // Filtro por sexo
+      let matchesSexo = true;
+      if (sexoFilter !== 'todos') {
+        matchesSexo = item.sexo === sexoFilter;
+      }
+
+      return matchesSearch && matchesFilter && matchesSexo;
     })
     .sort((a, b) => {
       if (a[orderBy] < b[orderBy]) {
@@ -162,26 +207,68 @@ export default function ConvencionistaTable() {
               <Refresh />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Filtrar">
-            <IconButton color="primary">
-              <FilterList />
-            </IconButton>
-          </Tooltip>
         </Box>
       </Box>
 
-      <TextField
-        label="Buscar convencionista"
-        variant="outlined"
-        size="small"
-        sx={{ mb: 2 }}
-        fullWidth
-        value={searchTerm}
-        onChange={handleSearch}
-      />
+      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+        <TextField
+          label="Buscar convencionista"
+          variant="outlined"
+          size="small"
+          sx={{ minWidth: 250, flexGrow: 1 }}
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+
+        <ButtonGroup variant="contained" sx={{ flexShrink: 0 }}>
+          <Button 
+            color={filter === 'todos' ? 'primary' : 'inherit'}
+            onClick={() => setFilter('todos')}
+          >
+            Todos
+          </Button>
+          <Button 
+            color={filter === 'menores' ? 'primary' : 'inherit'}
+            onClick={() => setFilter('menores')}
+            startIcon={<ChildCare />}
+          >
+           Niños
+          </Button>
+          <Button 
+            color={filter === 'asambleistas' ? 'primary' : 'inherit'}
+            onClick={() => setFilter('asambleistas')}
+            startIcon={<Groups />}
+          >
+            Asambleistas
+          </Button>
+        </ButtonGroup>
+
+        <FormControl sx={{ minWidth: 120 }} size="small">
+          <InputLabel id="sexo-filter-label">Sexo</InputLabel>
+          <Select
+            labelId="sexo-filter-label"
+            id="sexo-filter"
+            value={sexoFilter}
+            label="Sexo"
+            onChange={handleSexoFilterChange}
+          >
+            <MenuItem value="todos">Todos</MenuItem>
+            <MenuItem value="Masculino">
+              <Box display="flex" alignItems="center">
+                <Male sx={{ mr: 1 }} /> Masculino
+              </Box>
+            </MenuItem>
+            <MenuItem value="Femenino">
+              <Box display="flex" alignItems="center">
+                <Female sx={{ mr: 1 }} /> Femenino
+              </Box>
+            </MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
 
       <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 320 }}>
+        <TableContainer sx={{ maxHeight: 250 }}>
           <Table stickyHeader aria-label="tabla de convencionistas">
             <TableHead>
               <TableRow>
@@ -204,10 +291,12 @@ export default function ConvencionistaTable() {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell align="right">Edad</TableCell>
+                <TableCell>Sexo</TableCell>
                 <TableCell>Tipo Matrícula</TableCell>
                 <TableCell>Tipo Pago</TableCell>
                 <TableCell>Referencia</TableCell>
                 <TableCell align="right">Monto</TableCell>
+                <TableCell>Participación</TableCell>
                 <TableCell>
                   <TableSortLabel
                     active={orderBy === 'fecha_registro'}
@@ -226,17 +315,32 @@ export default function ConvencionistaTable() {
                   <TableRow key={row.id} hover>
                     <TableCell>{row.nombre}</TableCell>
                     <TableCell>{row.apellido}</TableCell>
-                    <TableCell align="right">{row.edad}</TableCell>
+                    <TableCell align="right">{row.edad || '-'}</TableCell>
+                    <TableCell>
+                      {row.sexo === 'Masculino' ? 
+                        <Male color="primary" /> : 
+                        <Female color="secondary" />}
+                    </TableCell>
                     <TableCell>{formatTipoMatricula(row.tipo_matricula)}</TableCell>
                     <TableCell>{formatTipoPago(row.tipo_pago)}</TableCell>
                     <TableCell>{row.referencia_pago}</TableCell>
                     <TableCell align="right">{formatCurrency(parseFloat(row.monto))}</TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={formatTipoAsamblea(row.tipo_asamblea)} 
+                        color={
+                          row.tipo_asamblea === 'Asambleista' ? 'primary' : 
+                          row.tipo_asamblea === 'Invitado Especial' ? 'secondary' : 'default'
+                        }
+                        size="small"
+                      />
+                    </TableCell>
                     <TableCell>{formatDate(row.fecha_registro)}</TableCell>
                   </TableRow>
                 ))}
               {emptyRows > 0 && (
                 <TableRow style={{ height: 53 * emptyRows }}>
-                  <TableCell colSpan={8} />
+                  <TableCell colSpan={10} />
                 </TableRow>
               )}
             </TableBody>
@@ -256,6 +360,12 @@ export default function ConvencionistaTable() {
           }
         />
       </Paper>
+
+      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+        <Typography variant="body2" color="text.secondary">
+          Total registros: {filteredData.length}
+        </Typography>
+      </Box>
     </Box>
   );
 }

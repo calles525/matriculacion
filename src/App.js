@@ -10,18 +10,18 @@ import Layout from './components/layout/Layout';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/idp">
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
-              <Route path="/" element={<DashboardPage />} />
+              {/* <Route path="/" element={<DashboardPage />} /> */}
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/convencionistas" element={<ConvencionistasPage />} />
-           
             </Route>
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AuthProvider>
     </Router>

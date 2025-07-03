@@ -1,6 +1,10 @@
-  RewriteEngine On  
-  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
-  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
-  RewriteRule ^ - [L]
+# Habilitar reescritura
+RewriteEngine On
 
-  RewriteRule ^ /index.html [L]
+# Si el archivo o directorio existe, servirlo directamente
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Si no existe, redirigir todas las solicitudes a index.html (para SPA)
+RewriteRule ^ index.html [L]

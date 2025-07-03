@@ -9,7 +9,10 @@ import {
   MenuItem,
   Grid,
   Paper,
-  CircularProgress
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import api from '../../api/api';
 import { Alert } from '../ui/Alert';
@@ -22,10 +25,11 @@ const validationSchema = Yup.object({
     .required('Apellido es requerido')
     .max(50, 'Máximo 50 caracteres'),
   edad: Yup.number()
-    .required('Edad es requerida')
+    .nullable()
     .min(1, 'Edad debe ser mayor a 0')
     .max(120, 'Edad no válida')
     .integer('Debe ser un número entero'),
+  sexo: Yup.string().required('Sexo es requerido'),
   tipo_matricula: Yup.string().required('Tipo de matrícula es requerido'),
   tipo_pago: Yup.string().required('Tipo de pago es requerido'),
   referencia_pago: Yup.string()
@@ -34,7 +38,8 @@ const validationSchema = Yup.object({
   monto: Yup.number()
     .required('Monto es requerido')
     .min(0, 'Monto no puede ser negativo')
-    .max(1000000, 'Monto demasiado alto')
+    .max(1000000, 'Monto demasiado alto'),
+  tipo_asamblea: Yup.string().required('Tipo de participación es requerido')
 });
 
 export default function ConvencionistaForm({ onSuccess }) {
@@ -46,18 +51,18 @@ export default function ConvencionistaForm({ onSuccess }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const user = JSON.parse(localStorage.getItem('user')) || {};
   const zonaId = user.zona?.id || user.idzona;
-  console.log('User data:', user.id, user.idzona);
 
- const formik = useFormik({
+  const formik = useFormik({
     initialValues: {
-     
       nombre: '',
       apellido: '',
       edad: '',
+      sexo: '',
       tipo_matricula: 'normal',
       tipo_pago: 'pago_movil',
       referencia_pago: '',
-      monto: ''
+      monto: '',
+      tipo_asamblea: 'Visita' // Valor por defecto como en el backend
     },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
@@ -66,11 +71,11 @@ export default function ConvencionistaForm({ onSuccess }) {
       setIsSubmitting(true);
       try {
         const response = await api.post('/convencionistas', values, {
-      params: {
-        usuario_id: user.id,
-        zona_id: zonaId
-      }
-    });
+          params: {
+            usuario_id: user.id,
+            zona_id: zonaId
+          }
+        });
         
         setAlert({
           open: true,
@@ -155,6 +160,29 @@ export default function ConvencionistaForm({ onSuccess }) {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <InputLabel id="sexo-label">Sexo</InputLabel>
+              <Select
+                labelId="sexo-label"
+                id="sexo"
+                name="sexo"
+                label="Sexo"
+                value={formik.values.sexo}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                error={formik.touched.sexo && Boolean(formik.errors.sexo)}
+              >
+                <MenuItem value="Masculino">Masculino</MenuItem>
+                <MenuItem value="Femenino">Femenino</MenuItem>
+              </Select>
+            </FormControl>
+            {formik.touched.sexo && formik.errors.sexo && (
+              <Typography color="error" variant="caption">
+                {formik.errors.sexo}
+              </Typography>
+            )}
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
               id="tipo_matricula"
@@ -194,7 +222,7 @@ export default function ConvencionistaForm({ onSuccess }) {
               fullWidth
               id="referencia_pago"
               name="referencia_pago"
-              label="Referencia de Pago"
+              label="Referencia o Serial de Billete"
               value={formik.values.referencia_pago}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -214,10 +242,26 @@ export default function ConvencionistaForm({ onSuccess }) {
               onBlur={formik.handleBlur}
               error={formik.touched.monto && Boolean(formik.errors.monto)}
               helperText={formik.touched.monto && formik.errors.monto}
-              InputProps={{
-                startAdornment: '$',
-              }}
+             
             />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              id="tipo_asamblea"
+              name="tipo_asamblea"
+              label="Tipo de Participación"
+              select
+              value={formik.values.tipo_asamblea}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.tipo_asamblea && Boolean(formik.errors.tipo_asamblea)}
+              helperText={formik.touched.tipo_asamblea && formik.errors.tipo_asamblea}
+            >
+              <MenuItem value="Niño">Niño</MenuItem>
+              <MenuItem value="Asambleista">Asambleista</MenuItem>
+              <MenuItem value="Visita">Invitado Especial</MenuItem>
+            </TextField>
           </Grid>
         </Grid>
 
@@ -237,12 +281,7 @@ export default function ConvencionistaForm({ onSuccess }) {
         </Button>
       </Box>
 
-    {/*  <Alert
-        open={alert.open}
-        onClose={() => setAlert({...alert, open: false})}
-        severity={alert.severity}
-        message={alert.message}
-      />*/}
+     
     </Paper>
   );
 }
