@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/idp/static/css/main.31d6cfe0.css",
+    "main.js": "/idp/static/js/main.3ad07caa.js",
+    "static/media/FUEGO.png": "/idp/static/media/FUEGO.b14647f7c9c855f6732b.png",
+    "static/media/1.png": "/idp/static/media/1.60e429ccea5280d8f316.png",
+    "index.html": "/idp/index.html",
+    "main.3ad07caa.js.map": "/idp/static/js/main.3ad07caa.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.31d6cfe0.css",
+    "static/js/main.3ad07caa.js"
+  ]
+}

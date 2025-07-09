@@ -23,7 +23,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { Refresh, FilterList, ChildCare, Groups, Male, Female } from '@mui/icons-material';
+import { Refresh, ChildCare, Groups, Male, Female } from '@mui/icons-material';
 import api from '../../api/api';
 import { Alert } from '../ui/Alert';
 
@@ -47,7 +47,7 @@ const formatCurrency = (amount) => {
 };
 
 const formatTipoMatricula = (tipo) => {
-  return tipo === 'normal' ? 'Normal' : 'Combo';
+  return tipo === 'normal' ? 'General' : 'Combo';
 };
 
 const formatTipoPago = (tipo) => {
@@ -63,8 +63,7 @@ const formatTipoAsamblea = (tipo) => {
   const tipos = {
     'Niño': 'Niño',
     'Asambleista': 'Asambleista',
-    'Visita': 'Visita',
-    'Invitado Especial': 'Invitado Especial'
+    'Visita': 'Visita'
   };
   return tipos[tipo] || tipo;
 };
@@ -79,12 +78,11 @@ export default function ConvencionistaTable() {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('fecha_registro');
   const [refresh, setRefresh] = useState(false);
-  const [filter, setFilter] = useState('todos'); // 'todos', 'menores', 'asambleistas'
-  const [sexoFilter, setSexoFilter] = useState('todos'); // 'todos', 'Masculino', 'Femenino'
+  const [filter, setFilter] = useState('todos');
+  const [sexoFilter, setSexoFilter] = useState('todos');
 
   useEffect(() => {
     const fetchConvencionistas = async () => {
-      const user = JSON.parse(localStorage.getItem('user')) || {};
       try {
         const response = await api.get(`/convencionistas`);
         setConvencionistas(response.data.data || response.data);
@@ -131,19 +129,17 @@ export default function ConvencionistaTable() {
 
   const filteredData = convencionistas
     .filter(item => {
-      // Filtro por búsqueda
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = (
         item.nombre.toLowerCase().includes(searchLower) ||
         item.apellido.toLowerCase().includes(searchLower) ||
-        item.referencia_pago.toLowerCase().includes(searchLower) ||
-        item.tipo_matricula.toLowerCase().includes(searchLower) ||
-        item.tipo_pago.toLowerCase().includes(searchLower)
+        item.referencia_pago?.toLowerCase().includes(searchLower) ||
+        item.tipo_matricula?.toLowerCase().includes(searchLower) ||
+        item.tipo_pago?.toLowerCase().includes(searchLower)
       );
 
-      // Filtro por tipo (botones)
       let matchesFilter = true;
-      switch(filter) {
+      switch (filter) {
         case 'menores':
           matchesFilter = parseInt(item.edad) < 12;
           break;
@@ -154,7 +150,6 @@ export default function ConvencionistaTable() {
           matchesFilter = true;
       }
 
-      // Filtro por sexo
       let matchesSexo = true;
       if (sexoFilter !== 'todos') {
         matchesSexo = item.sexo === sexoFilter;
@@ -197,7 +192,7 @@ export default function ConvencionistaTable() {
 
   return (
     <Box sx={{ width: '100%', mt: 2, backgroundColor: '#fff', p: 2, borderRadius: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="h6" gutterBottom>
           Lista de Convencionistas
         </Typography>
@@ -220,7 +215,7 @@ export default function ConvencionistaTable() {
           onChange={handleSearch}
         />
 
-        <ButtonGroup variant="contained" sx={{ flexShrink: 0 }}>
+        <ButtonGroup variant="contained" sx={{ flexShrink: 0, flexWrap: 'wrap' }}>
           <Button 
             color={filter === 'todos' ? 'primary' : 'inherit'}
             onClick={() => setFilter('todos')}
@@ -232,7 +227,7 @@ export default function ConvencionistaTable() {
             onClick={() => setFilter('menores')}
             startIcon={<ChildCare />}
           >
-           Niños
+            Niños
           </Button>
           <Button 
             color={filter === 'asambleistas' ? 'primary' : 'inherit'}
@@ -268,8 +263,13 @@ export default function ConvencionistaTable() {
       </Box>
 
       <Paper elevation={3} sx={{ overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 250 }}>
-          <Table stickyHeader aria-label="tabla de convencionistas">
+        {/* Contenedor con scroll horizontal para móviles */}
+        <TableContainer sx={{ maxHeight: 250, overflowX: 'auto' }}>
+          <Table 
+            stickyHeader 
+            aria-label="tabla de convencionistas" 
+            sx={{ minWidth: 850 }}
+          >
             <TableHead>
               <TableRow>
                 <TableCell>
@@ -311,33 +311,27 @@ export default function ConvencionistaTable() {
             <TableBody>
               {filteredData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
-                  <TableRow key={row.id} hover>
-                    <TableCell>{row.nombre}</TableCell>
-                    <TableCell>{row.apellido}</TableCell>
-                    <TableCell align="right">{row.edad || '-'}</TableCell>
-                    <TableCell>
-                      {row.sexo === 'Masculino' ? 
-                        <Male color="primary" /> : 
-                        <Female color="secondary" />}
+                .map((item) => (
+                  <TableRow key={item.id} hover>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.nombre}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.apellido}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{item.edad}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.sexo}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatTipoMatricula(item.tipo_matricula)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatTipoPago(item.tipo_pago)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{item.referencia_pago}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                      {formatCurrency(item.monto)}
                     </TableCell>
-                    <TableCell>{formatTipoMatricula(row.tipo_matricula)}</TableCell>
-                    <TableCell>{formatTipoPago(row.tipo_pago)}</TableCell>
-                    <TableCell>{row.referencia_pago}</TableCell>
-                    <TableCell align="right">{formatCurrency(parseFloat(row.monto))}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={formatTipoAsamblea(row.tipo_asamblea)} 
-                        color={
-                          row.tipo_asamblea === 'Asambleista' ? 'primary' : 
-                          row.tipo_asamblea === 'Invitado Especial' ? 'secondary' : 'default'
-                        }
-                        size="small"
-                      />
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      <Chip label={formatTipoAsamblea(item.tipo_asamblea)} size="small" />
                     </TableCell>
-                    <TableCell>{formatDate(row.fecha_registro)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(item.fecha_registro)}
+                    </TableCell>
                   </TableRow>
                 ))}
+
               {emptyRows > 0 && (
                 <TableRow style={{ height: 53 * emptyRows }}>
                   <TableCell colSpan={10} />
@@ -346,6 +340,7 @@ export default function ConvencionistaTable() {
             </TableBody>
           </Table>
         </TableContainer>
+
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -354,18 +349,8 @@ export default function ConvencionistaTable() {
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Filas por página:"
-          labelDisplayedRows={({ from, to, count }) => 
-            `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
-          }
         />
       </Paper>
-
-      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Typography variant="body2" color="text.secondary">
-          Total registros: {filteredData.length}
-        </Typography>
-      </Box>
     </Box>
   );
 }

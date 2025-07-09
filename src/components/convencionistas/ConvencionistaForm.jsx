@@ -106,9 +106,27 @@ export default function ConvencionistaForm({ onSuccess }) {
     formik.handleSubmit();
   };
 
+
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
+  
+  
+  
+    React.useEffect(() => {
+      const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+      };
+  
+      window.addEventListener('resize', handleResize);
+  
+      // Limpieza para evitar memory leaks
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, []);
+
   return (
-    <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Paper  sx={{ p: 3 , mt:windowWidth < 500 ? 80 : 0}}>
+      <Typography variant="h6" gutterBottom >
         Registrar Nuevo Convencionista
       </Typography>
       
@@ -116,7 +134,7 @@ export default function ConvencionistaForm({ onSuccess }) {
         component="form" 
         onSubmit={handleFormSubmit}
         noValidate
-        sx={{ mt: 2 }}
+        
       >
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -195,7 +213,7 @@ export default function ConvencionistaForm({ onSuccess }) {
               error={formik.touched.tipo_matricula && Boolean(formik.errors.tipo_matricula)}
               helperText={formik.touched.tipo_matricula && formik.errors.tipo_matricula}
             >
-              <MenuItem value="normal">Normal</MenuItem>
+              <MenuItem value="normal">General</MenuItem>
               <MenuItem value="combo">Combo</MenuItem>
             </TextField>
           </Grid>
@@ -260,7 +278,7 @@ export default function ConvencionistaForm({ onSuccess }) {
             >
               <MenuItem value="Niño">Niño</MenuItem>
               <MenuItem value="Asambleista">Asambleista</MenuItem>
-              <MenuItem value="Visita">Invitado Especial</MenuItem>
+              <MenuItem value="Visita">Visita</MenuItem>
             </TextField>
           </Grid>
         </Grid>
